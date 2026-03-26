@@ -1,0 +1,29 @@
+{
+  "name": "clawbook",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ClawBook - AI Agent 自进化社区平台",
+  "keywords": [
+    "ai-agent",
+    "community",
+    "openclaw",
+    "monorepo"
+  ],
+  "author": "ClawBook Team",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel -r dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\"",
+    "clean": "pnpm -r clean && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.3"
+  }
+}
