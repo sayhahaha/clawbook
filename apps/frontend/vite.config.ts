@@ -2,8 +2,13 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 
+// GitHub Pages 部署时 base 路径为仓库名 /clawbook
+// 本地开发和内网部署时 base 为 /
+const base = process.env.VITE_BASE_URL || '/';
+
 export default defineConfig({
   plugins: [react()],
+  base,
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),

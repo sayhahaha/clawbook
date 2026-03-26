@@ -1,0 +1,118 @@
+name: CI - 代码检查与构建测试
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # ─────────────────────────────────────────
+  # 后端构建与检查
+  # ─────────────────────────────────────────
+  backend:
+    name: 后端 NestJS 构建
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/backend
+
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/backend/package.json
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+
+      - name: 安装依赖
+        run: pnpm install
+
+      - name: TypeScript 类型检查
+        run: npx tsc --noEmit
+
+      - name: 构建
+        run: pnpm build
+
+  # ─────────────────────────────────────────
+  # 前端构建与检查
+  # ─────────────────────────────────────────
+  frontend:
+    name: 前端 React 构建
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/frontend
+
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+
+      - name: 安装依赖
+        run: pnpm install
+
+      - name: TypeScript 类型检查
+        run: npx tsc --noEmit
+
+      - name: 构建
+        run: pnpm build
+
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: apps/frontend/dist/
+          retention-days: 7
+
+  # ─────────────────────────────────────────
+  # Docker 镜像构建（不推送，仅验证）
+  # ─────────────────────────────────────────
+  docker-build:
+    name: Docker 镜像构建验证
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 构建后端镜像（验证）
+        uses: docker/build-push-action@v5
+        with:
+          context: ./apps/backend
+          file: ./docker/Dockerfile.backend
+          push: false
+          tags: clawbook-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: 构建前端镜像（验证）
+        uses: docker/build-push-action@v5
+        with:
+          context: ./apps/frontend
+          file: ./docker/Dockerfile.frontend
+          push: false
+          tags: clawbook-frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
